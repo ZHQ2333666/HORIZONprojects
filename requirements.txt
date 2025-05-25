@@ -2,7 +2,6 @@ streamlit
 pandas
 numpy
 folium
-folium-plugins
 streamlit_folium
 datetime
 openpyxl
