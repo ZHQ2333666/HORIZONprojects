@@ -214,7 +214,8 @@ elif page == "Organization Table and Map":
     else:
         map_df = st.session_state.map_df
 
-
+    st.markdown(f"### Found {len(map_df)} organizations")
+    st.dataframe(map_df, use_container_width=True)
 
     if not map_df.empty:
         m = folium.Map(location=[map_df["latitude"].mean(), map_df["longitude"].mean()], zoom_start=4)
