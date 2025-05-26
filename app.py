@@ -163,7 +163,7 @@ elif page == "机构地图":
                     'ScatterplotLayer',
                     data=map_df,
                     get_position='[longitude, latitude]',
-                    get_radius=10000,
+                    get_radius=500,
                     get_fill_color='[180, 0, 200, 140]',
                     pickable=True
                 )
