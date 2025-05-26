@@ -52,16 +52,39 @@ if page == "项目查询":
         max_value=max_date
     )
 
-    # 金额筛选
-    min_contribution = float(project_df["ecMaxContribution"].min())
-    max_contribution = float(project_df["ecMaxContribution"].max())
+#    # 金额筛选
+#    min_contribution = float(project_df["ecMaxContribution"].min())
+#    max_contribution = float(project_df["ecMaxContribution"].max())
+#
+#    contrib_range = st.sidebar.slider(
+#        "投资总金额范围 (€)：",
+#        min_value=min_contribution,
+#        max_value=max_contribution,
+#        value=(min_contribution, max_contribution)
+#    )
+
+    # 添加复选框控制是否排除极端值
+    exclude_outliers = st.sidebar.checkbox("排除极端值（> 95% 分位）", value=True)
+
+    # 设置金额范围
+    if exclude_outliers:
+        min_contribution = project_df["ecMaxContribution"].quantile(0.01)
+        max_contribution = project_df["ecMaxContribution"].quantile(0.95)
+    else:
+        min_contribution = float(project_df["ecMaxContribution"].min())
+        max_contribution = float(project_df["ecMaxContribution"].max())
 
     contrib_range = st.sidebar.slider(
         "投资总金额范围 (€)：",
-        min_value=min_contribution,
-        max_value=max_contribution,
-        value=(min_contribution, max_contribution)
+        min_value=float(min_contribution),
+        max_value=float(max_contribution),
+        value=(float(min_contribution), float(max_contribution))
     )
+
+    # 如果排除极端值，还要在原始数据上做一次裁剪
+    if exclude_outliers:
+        project_df = project_df[project_df["ecMaxContribution"] <= max_contribution]
+
 
     # 应用筛选条件
     filtered_df = project_df.copy()
@@ -125,7 +148,7 @@ elif page == "机构地图":
 
     # 地图展示
     if not org_filtered.empty:
-        map_df = org_filtered.dropna(subset=["latitude", "longitude"])
+        map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
 
         st.pydeck_chart(pdk.Deck(
             map_style='mapbox://styles/mapbox/light-v9',
