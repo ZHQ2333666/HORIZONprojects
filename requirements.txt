@@ -5,3 +5,4 @@ streamlit_folium
 datetime
 openpyxl
 joblib
+scikit-learn==1.2.2
