@@ -1,15 +1,16 @@
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
-from datetime import datetime
+from datetime import datetime, date
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
+import joblib
 
 st.set_page_config(page_title="Projects and Organizations", layout="wide")
 
 # ----------- Pages -----------
-page = st.sidebar.radio("Pages: ", ["Projects", "Organizations"])
+page = st.sidebar.radio("Pages: ", ["Projects", "Organizations", "Predictions of Contributions"])
 
 # ----------- Load data -----------
 @st.cache_data
@@ -204,3 +205,49 @@ elif page == "Organizations":
 #            ).add_to(marker_cluster)
 #
 #        st_folium(m, width=1000, height=600)
+
+# Page3 Predictions of Contributions
+elif page == "Predictions of Contributions":
+    st.title("Predictions of Contributions")
+
+    # Load the prediction model or pipeline
+    model = joblib.load("model.pkl")
+    
+    # Fill in the option values of funding scheme and country
+    funding_options = ['HORIZON-ERC', 'HORIZON-AG', 'ERC', 'HORIZON-CSA', 'HORIZON-RIA', 'HORIZON-EIC', 'EURATOM-COFUND', 'CSA', 'HORIZON-COFUND', 'HORIZON-IA', 'EIC',
+                       'HORIZON-TMA-MSCA-PF-EF', 'EURATOM-CSA', 'EURATOM-RIA', 'EURATOM-IA', 'HORIZON-ERC-SYG', 'ERC-SYG', 'RIA', 'IA', 'HORIZON-PCP', 'HORIZON-JU-RIA',
+                       'HORIZON-JU-IA', 'HORIZON-JU-CSA', 'HORIZON-EIT-KIC', 'HORIZON-EIC-ACC-BF', 'EIC-ACC']
+    country_options = ['ES', 'PL', 'DE', 'FR', 'FI', 'IL', 'NL', 'NO', 'IT', 'SE', 'PT', 'TR', 'CZ', 'AT', 'DK', 'BE', 'IE', 'EL', 'IS', 'LU', 'SI', 'CH', 'RO', 'HU',
+                       'EE', 'CY', 'UK', 'LT', 'AL', 'RS', 'ME', 'SK', 'BA', 'FO', 'LV', 'HR', 'MT', 'UA', 'TN', 'GE', 'ZA', 'BG', 'AM', 'KE', 'NG', 'BD', 'AU']
+
+    with st.form("prediction_form"):
+        total_cost = st.number_input("Total Cost (€): ", min_value=0.0)
+        sme_label = st.radio("Is SME?", ["Yes", "No"])
+        sme = 1 if sme_label == "Yes" else 0
+        org_count = st.number_input("Number of Organizations: ", min_value=1, max_value=100)
+        start_month = st.selectbox("Start Month: ", list(range(1, 13)))
+        date_range = st.date_input("Select Start Date & End Date", [date(2025,1,1), date(2025,12,31)])
+        
+        if len(date_range) == 2:
+           start_date, end_date = date_range
+           duration_days = (end_date - start_date).days
+           st.markdown(f"Duration in days: {duration_days}")
+        else:
+           duration_days = None
+        funding_scheme = st.selectbox("Funding Scheme: ", funding_options)
+        country = st.selectbox("Country: ", country_options)
+        submit_button = st.form_submit_button("Predict Contribution")
+
+    if submit_button:
+        input_df = pd.DataFrame({
+            "totalCost": [total_cost],
+            "SME": [sme],
+            "org_count": [org_count],
+            "startmonth": [start_month],
+            "duration_days": [duration_days],
+            "fundingScheme": [funding_scheme],
+            "organiser_country": [country]
+        })
+
+        prediction = model.predict(input_df)
+        st.success(f"Predicted Contribution Class: {prediction[0].capitalize()}")
