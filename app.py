@@ -210,3 +210,5 @@ elif page == "Organization Table and Map":
                 (map_df["longitude"] <= ne["lng"])
             ]
             st.caption(f"Organizations within the selected map bounds: {len(map_df)}")
+        else:
+            st.warning("No boundaries loaded, please drag or zoom the map to view!")
