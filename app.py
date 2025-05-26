@@ -158,32 +158,62 @@ elif page == "Organization Table and Map":
     city_filter = st.sidebar.text_input("city")
     postcode_filter = st.sidebar.text_input("postcode")
 
-    org_filtered = org_df.copy()
-
-    if search_org:
-        search_lower = search_org.lower()
-        org_filtered = org_filtered[
-            org_filtered["organisationID"].astype(str).str.contains(search_lower, case=False) |
-            org_filtered["name"].astype(str).str.contains(search_lower, case=False)
-        ]
-
-    if country_filter:
-        org_filtered = org_filtered[org_filtered["country"].astype(str).str.contains(country_filter, case=False)]
-    if city_filter:
-        org_filtered = org_filtered[org_filtered["city"].astype(str).str.contains(city_filter, case=False)]
-    if postcode_filter:
-        org_filtered = org_filtered[org_filtered["postCode"].astype(str).str.contains(postcode_filter, case=False)]
-
-    st.markdown(f"### Found {len(org_filtered)} organizations")
-    st.dataframe(org_filtered, use_container_width=True)
-
+#    org_filtered = org_df.copy()
+#
+#    if search_org:
+#        search_lower = search_org.lower()
+#        org_filtered = org_filtered[
+#            org_filtered["organisationID"].astype(str).str.contains(search_lower, case=False) |
+#            org_filtered["name"].astype(str).str.contains(search_lower, case=False)
+#        ]
+#
+#    if country_filter:
+#        org_filtered = org_filtered[org_filtered["country"].astype(str).str.contains(country_filter, case=False)]
+#    if city_filter:
+#        org_filtered = org_filtered[org_filtered["city"].astype(str).str.contains(city_filter, case=False)]
+#    if postcode_filter:
+#        org_filtered = org_filtered[org_filtered["postCode"].astype(str).str.contains(postcode_filter, case=False)]
+#
+#    st.markdown(f"### Found {len(org_filtered)} organizations")
+#    st.dataframe(org_filtered, use_container_width=True)
+#
 #    map_df = org_filtered.dropna(subset=["latitude", "longitude"])
+#
+#    map_df = (
+#        org_filtered
+#        .dropna(subset=["latitude", "longitude"])
+#        .drop_duplicates(subset="organisationID")
+#    )
 
-    map_df = (
-        org_filtered
-        .dropna(subset=["latitude", "longitude"])
-        .drop_duplicates(subset="organisationID")
-    )
+    if "map_df" not in st.session_state:
+        # 初次加载或切换条件，重新生成
+        org_filtered = org_df.copy()
+
+        if search_org:
+            search_lower = search_org.lower()
+            org_filtered = org_filtered[
+                org_filtered["organisationID"].astype(str).str.contains(search_lower, case=False) |
+                org_filtered["name"].astype(str).str.contains(search_lower, case=False)
+            ]
+        if country_filter:
+            org_filtered = org_filtered[org_filtered["country"].astype(str).str.contains(country_filter, case=False)]
+        if city_filter:
+            org_filtered = org_filtered[org_filtered["city"].astype(str).str.contains(city_filter, case=False)]
+        if postcode_filter:
+            org_filtered = org_filtered[org_filtered["postCode"].astype(str).str.contains(postcode_filter, case=False)]
+
+        map_df = (
+            org_filtered
+            .dropna(subset=["latitude", "longitude"])
+            .drop_duplicates(subset="organisationID")
+        )
+
+        # 缓存结果到 session_state
+        st.session_state.map_df = map_df
+
+    else:
+        map_df = st.session_state.map_df
+
 
 
     if not map_df.empty:
