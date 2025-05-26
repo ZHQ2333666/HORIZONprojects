@@ -195,4 +195,18 @@ elif page == "Organization Table and Map":
                 popup=popup_info
             ).add_to(marker_cluster)
 
-        st_folium(m, width=1000, height=600)
+#        st_folium(m, width=1000, height=600)
+        map_data = st_folium(m, width=1000, height=600, returned_objects=["bounds"])
+
+        if map_data and "bounds" in map_data:
+            bounds = map_data["bounds"]
+            sw = bounds["_southWest"]
+            ne = bounds["_northEast"]
+
+            map_df = map_df[
+                (map_df["latitude"] >= sw["lat"]) &
+                (map_df["latitude"] <= ne["lat"]) &
+                (map_df["longitude"] >= sw["lng"]) &
+                (map_df["longitude"] <= ne["lng"])
+            ]
+            st.caption(f"Organizations within the selected map bounds: {len(map_df)}")
