@@ -185,15 +185,9 @@ elif page == "Organization Table and Map":
 #        .drop_duplicates(subset="organisationID")
 #    )
 
-#    if "map_df" not in st.session_state:
-#        # 初次加载或切换条件，重新生成
-#        org_filtered = org_df.copy()
-
     if "map_df" not in st.session_state:
-        # 初次加载或切换条件，默认筛选 city = "Leuven"
+        # 初次加载或切换条件，重新生成
         org_filtered = org_df.copy()
-        org_filtered = org_filtered[org_filtered["city"].astype(str).str.lower() == "leuven"]
-
 
         if search_org:
             search_lower = search_org.lower()
