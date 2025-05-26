@@ -175,7 +175,14 @@ elif page == "Organization Table and Map":
     st.markdown(f"### Found {len(org_filtered)} organizations")
     st.dataframe(org_filtered, use_container_width=True)
 
-    map_df = org_filtered.dropna(subset=["latitude", "longitude"])
+#    map_df = org_filtered.dropna(subset=["latitude", "longitude"])
+
+    map_df = (
+        org_filtered
+        .dropna(subset=["latitude", "longitude"])
+        .drop_duplicates(subset="organisationID")
+    )
+
 
     if not map_df.empty:
         m = folium.Map(location=[map_df["latitude"].mean(), map_df["longitude"].mean()], zoom_start=4)
