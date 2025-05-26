@@ -14,7 +14,8 @@ page = st.sidebar.radio("Options: ", ["Project", "Organization Table and Map"])
 @st.cache_data
 
 def load_project_data():
-    df = pd.read_excel("project.xlsx")
+#    df = pd.read_excel("project.xlsx")
+    df = pd.read_csv("project.csv")
     df["startDate"] = pd.to_datetime(df["startDate"], errors='coerce')
     df["endDate"] = pd.to_datetime(df["endDate"], errors='coerce')
     df["ecMaxContribution"] = (
@@ -28,7 +29,8 @@ def load_project_data():
 @st.cache_data
 
 def load_org_data():
-    df = pd.read_excel("organization.xlsx")
+#    df = pd.read_excel("organization.xlsx")
+    df = pd.read_csv("organization.csv")
     if "geolocation" in df.columns:
         df[["latitude", "longitude"]] = df["geolocation"].str.split(",", expand=True)
         df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
