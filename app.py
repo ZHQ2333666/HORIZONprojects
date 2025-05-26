@@ -211,7 +211,7 @@ elif page == "Predictions of Contributions":
     st.title("Predictions of Contributions")
 
     # Load the prediction model or pipeline
-    model = joblib.load("model.pkl")
+    model = joblib.load("model_fresh.pkl")
     
     # Fill in the option values of funding scheme and country
     funding_options = ['HORIZON-ERC', 'HORIZON-AG', 'ERC', 'HORIZON-CSA', 'HORIZON-RIA', 'HORIZON-EIC', 'EURATOM-COFUND', 'CSA', 'HORIZON-COFUND', 'HORIZON-IA', 'EIC',
