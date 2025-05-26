@@ -3,3 +3,6 @@ headless = true
 enableCORS = false
 enableXsrfProtection = false
 fileWatcherType = "none"
+
+[tool]
+python_version = "3.10"
