@@ -12,16 +12,17 @@ page = st.sidebar.radio("选择页面：", ["项目查询", "机构地图"])
 @st.cache_data
 
 def load_project_data():
-    df = pd.read_excel("project.xlsx")
+    df = pd.read_csv("project.csv")
     df["startDate"] = pd.to_datetime(df["startDate"], errors='coerce')
     df["endDate"] = pd.to_datetime(df["endDate"], errors='coerce')
+    df["ecMaxContribution"] = df["ecMaxContribution"].astype(str).str.replace(",", ".", regex=False)
     df["ecMaxContribution"] = pd.to_numeric(df["ecMaxContribution"], errors="coerce")
     return df
 
 @st.cache_data
 
 def load_org_data():
-    df = pd.read_excel("organization.xlsx")
+    df = pd.read_csv("organization.csv")
     # 拆分 geolocation 列为 latitude 和 longitude
     if "geolocation" in df.columns:
         df[["latitude", "longitude"]] = df["geolocation"].str.split(",", expand=True)
