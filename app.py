@@ -6,12 +6,12 @@ import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
-st.set_page_config(page_title="项目与机构查询面板", layout="wide")
+st.set_page_config(page_title="Projects and Organizations", layout="wide")
 
-# ----------- 页面控制 -----------
-page = st.sidebar.radio("选择页面：", ["项目查询", "机构地图"])
+# ----------- Pages -----------
+page = st.sidebar.radio("Pages: ", ["Projects", "Organizations"])
 
-# ----------- 加载数据 -----------
+# ----------- Load data -----------
 @st.cache_data
 
 def load_project_data():
@@ -26,50 +26,50 @@ def load_project_data():
 
 def load_org_data():
     df = pd.read_csv("organization.csv")
-    # 拆分 geolocation 列为 latitude 和 longitude
+    # Split geolocation to latitude and longitude
     if "geolocation" in df.columns:
         df[["latitude", "longitude"]] = df["geolocation"].str.split(",", expand=True)
         df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
         df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
     return df
 
-# 页面一：项目查询
-if page == "项目查询":
+# Page1 Projects
+if page == "Projects":
     project_df = load_project_data()
 
-    st.title("项目查询与筛选")
+    st.title("Search or Filter Projects")
 
-    st.sidebar.header("项目筛选条件")
+    st.sidebar.header("Conditions for Filtering Projects")
 
-    # 搜索
-    search_term = st.sidebar.text_input("按项目 ID / 名称 / 缩写 搜索：")
+    # Search input
+    search_term = st.sidebar.text_input("ID / Title / Acronym Search: ")
 
-    # 时间范围选择
+    # Date range
     min_date = project_df["startDate"].min()
     max_date = project_df["endDate"].max()
 
     start_date, end_date = st.sidebar.date_input(
-        "选择项目开始-结束时间范围：",
+        "Start date and End date: ",
         [min_date, max_date],
         min_value=min_date,
         max_value=max_date
     )
 
-#    # 金额筛选
+#    # Amount range slider
 #    min_contribution = float(project_df["ecMaxContribution"].min())
 #    max_contribution = float(project_df["ecMaxContribution"].max())
 #
 #    contrib_range = st.sidebar.slider(
-#        "投资总金额范围 (€)：",
+#        "Total Funding Amount (€): ",
 #        min_value=min_contribution,
 #        max_value=max_contribution,
 #        value=(min_contribution, max_contribution)
 #    )
 
-    # 添加复选框控制是否排除极端值
-    exclude_outliers = st.sidebar.checkbox("排除极端值（> 95% 分位）", value=True)
+    # Add a checkbox to control whether to exclude extreme values
+    exclude_outliers = st.sidebar.checkbox("Exclude extreme values (>95%)", value=True)
 
-    # 设置金额范围
+    # Set range of contributions based on whether to exclude extreme values
     if exclude_outliers:
         min_contribution = project_df["ecMaxContribution"].quantile(0.01)
         max_contribution = project_df["ecMaxContribution"].quantile(0.95)
@@ -78,18 +78,18 @@ if page == "项目查询":
         max_contribution = float(project_df["ecMaxContribution"].max())
 
     contrib_range = st.sidebar.slider(
-        "投资总金额范围 (€)：",
+        "Total Funding Amount (€): ",
         min_value=float(min_contribution),
         max_value=float(max_contribution),
         value=(float(min_contribution), float(max_contribution))
     )
 
-    # 如果排除极端值，还要在原始数据上做一次裁剪
+    # Clip raw DataFrame to exclude outliers if the checkbox is checked
     if exclude_outliers:
         project_df = project_df[project_df["ecMaxContribution"] <= max_contribution]
 
 
-    # 应用筛选条件
+    # Apply filters
     filtered_df = project_df.copy()
 
     if search_term:
@@ -107,28 +107,28 @@ if page == "项目查询":
         (filtered_df["ecMaxContribution"] <= contrib_range[1])
     ]
 
-    st.markdown(f"### 筛选结果：共 {len(filtered_df)} 个项目")
+    st.markdown(f"### Filtered Outcome: {len(filtered_df)} projects")
     st.dataframe(filtered_df, use_container_width=True)
 
     st.download_button(
-        label="下载筛选结果为 CSV",
+        label="Download the outcome as CSV",
         data=filtered_df.to_csv(index=False).encode('utf-8-sig'),
         file_name="filtered_projects.csv",
         mime="text/csv"
     )
 
-# 页面二：机构地图
-elif page == "机构地图":
+# Page2 Organizations
+elif page == "Organizations":
     org_df = load_org_data()
 
-    st.title("欧洲机构查询与地图展示")
+    st.title("Table and Map of Organizations")
 
-    st.sidebar.header("机构筛选条件")
+    st.sidebar.header("Conditions for Filtering Organizations")
 
-    search_org = st.sidebar.text_input("按机构 ID / 名称 搜索：")
-    country_filter = st.sidebar.text_input("国家（country）")
-    city_filter = st.sidebar.text_input("城市（city）")
-    postcode_filter = st.sidebar.text_input("邮政编码（postCode）")
+    search_org = st.sidebar.text_input(" ID / Name Search: ")
+    country_filter = st.sidebar.text_input("Country")
+    city_filter = st.sidebar.text_input("City")
+    postcode_filter = st.sidebar.text_input("Postcode")
 
     org_filtered = org_df.copy()
 
@@ -146,10 +146,10 @@ elif page == "机构地图":
     if postcode_filter:
         org_filtered = org_filtered[org_filtered["postCode"].astype(str).str.contains(postcode_filter, case=False)]
 
-    st.markdown(f"### 匹配到 {len(org_filtered)} 个机构")
+    st.markdown(f"### Filtered Outcome: {len(org_filtered)} organizations")
     st.dataframe(org_filtered, use_container_width=True)
 
-    # 地图展示
+    # Map
     if not org_filtered.empty:
         map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
 
@@ -174,10 +174,10 @@ elif page == "机构地图":
                     "ScatterplotLayer",
                     data=map_df,
                     get_position='[longitude, latitude]',
-                    get_radius=10,                        # 基础半径，单位是米
-                    radius_scale=100,                    # 放大倍数（影响缩放感知）
-                    radius_min_pixels=2,                 # 缩小时最小像素尺寸
-                    radius_max_pixels=20,                # 放大时最大像素尺寸
+                    get_radius=10,                        # Base radius in meters
+                    radius_scale=100,                    # Scale factor for radius
+                    radius_min_pixels=2,                 # Minimum pixel size for radius
+                    radius_max_pixels=20,                # Maximum pixel size for radius
                     get_fill_color='[180, 0, 200, 140]',
                     pickable=True
                 )
