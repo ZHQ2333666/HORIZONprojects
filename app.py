@@ -149,19 +149,19 @@ elif page == "机构地图":
     st.markdown(f"### 匹配到 {len(org_filtered)} 个机构")
     st.dataframe(org_filtered, use_container_width=True)
 
-#    # 地图展示
-#    if not org_filtered.empty:
-#        map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
-#
-#        st.pydeck_chart(pdk.Deck(
-#            map_style='mapbox://styles/mapbox/light-v9',
-#            initial_view_state=pdk.ViewState(
-#                latitude=map_df["latitude"].mean(),
-#                longitude=map_df["longitude"].mean(),
-#                zoom=4,
-#                pitch=0,
-#            ),
-#            layers=[
+    # 地图展示
+    if not org_filtered.empty:
+        map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
+
+        st.pydeck_chart(pdk.Deck(
+            map_style='mapbox://styles/mapbox/light-v9',
+            initial_view_state=pdk.ViewState(
+                latitude=map_df["latitude"].mean(),
+                longitude=map_df["longitude"].mean(),
+                zoom=4,
+                pitch=0,
+            ),
+            layers=[
 #                pdk.Layer(
 #                    'ScatterplotLayer',
 #                    data=map_df,
@@ -170,26 +170,37 @@ elif page == "机构地图":
 #                    get_fill_color='[180, 0, 200, 140]',
 #                    pickable=True
 #                )
-#            ],
-#            tooltip={"text": "{name}\n{city}, {country}"}
-#        ))
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=map_df,
+                    get_position='[longitude, latitude]',
+                    get_radius=10,                        # 基础半径，单位是米
+                    radius_scale=100,                    # 放大倍数（影响缩放感知）
+                    radius_min_pixels=2,                 # 缩小时最小像素尺寸
+                    radius_max_pixels=20,                # 放大时最大像素尺寸
+                    get_fill_color='[180, 0, 200, 140]',
+                    pickable=True
+                )
+            ],
+            tooltip={"text": "{name}\n{city}, {country}"}
+        ))
 
-    if not org_filtered.empty:
-        map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
-
-        m = folium.Map(
-            location=[map_df["latitude"].mean(), map_df["longitude"].mean()],
-            zoom_start=4,
-            tiles="cartodb positron"
-        )
-
-        marker_cluster = MarkerCluster().add_to(m)
-
-        for _, row in map_df.iterrows():
-            popup_info = f"<b>{row['name']}</b><br>{row.get('city', '')}, {row.get('country', '')}"
-            folium.Marker(
-                location=[row["latitude"], row["longitude"]],
-                popup=popup_info
-            ).add_to(marker_cluster)
-
-        st_folium(m, width=1000, height=600)
+#    if not org_filtered.empty:
+#        map_df = org_filtered.dropna(subset=["latitude", "longitude"]).drop_duplicates(subset="organisationID")
+#
+#        m = folium.Map(
+#            location=[map_df["latitude"].mean(), map_df["longitude"].mean()],
+#            zoom_start=4,
+#            tiles="cartodb positron"
+#        )
+#
+#        marker_cluster = MarkerCluster().add_to(m)
+#
+#        for _, row in map_df.iterrows():
+#            popup_info = f"<b>{row['name']}</b><br>{row.get('city', '')}, {row.get('country', '')}"
+#            folium.Marker(
+#                location=[row["latitude"], row["longitude"]],
+#                popup=popup_info
+#            ).add_to(marker_cluster)
+#
+#        st_folium(m, width=1000, height=600)
